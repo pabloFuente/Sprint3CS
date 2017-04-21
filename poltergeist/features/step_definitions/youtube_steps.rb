@@ -4,8 +4,10 @@ Given /^El usuario \"([^\"]*)\"$/ do |usuario|
     user = usuario;
 end
 
-When /^Voy a Youtube$/ do
-    visit "https://youtube.com"
+When /^Selecciono el filtro \"([^\"]*)\"/ do |filtro|
+    sleep 2
+    find("span", :text => "Filtros").click
+    find("span", :class => "filter-text", :text => filtro, :wait => 1).click
 end
 
 Then /^Todos los resultados deben ser canales$/ do
@@ -36,17 +38,15 @@ Then /^Todos los resultados deben tener una duración máxima de 4 min$/ do
     }
 end
 
+And /^Voy a Youtube$/ do
+    visit "https://youtube.com"
+end
+
 And /^Hago la búsqueda$/ do
   within("#masthead-search") do
     fill_in 'search_query', with: user
   end
   click_button 'search-btn'
-end
-
-And /^Selecciono el filtro \"([^\"]*)\"/ do |filtro|
-    sleep 2
-    find("span", :text => "Filtros").click
-    find("span", :class => "filter-text", :text => filtro, :wait => 1).click
 end
 
 def check_if_exist(_class)
