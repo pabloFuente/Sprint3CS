@@ -1,78 +1,74 @@
-user = "";
-url = "";
-current_canal = "";
+user = ""
+
+Given /^El usuario \"([^\"]*)\"$/ do |usuario|
+    user = usuario;
+end
 
 When /^Voy a Youtube$/ do
     visit "https://youtube.com"
 end
 
-Then /^El primer video tiene como autor el usuario dado$/ do
-     expect(find(".yt-lockup-title > a[title='#{user}']")).to have_content(user)
+Then /^Todos los resultados deben ser canales$/ do
+    check_if_exist(".yt-lockup-channel")
 end
 
-Then /^El primer video no tiene como autor el usuario dado$/ do
-   elem_1 =  first(".yt-lockup-title")
-   elem_2 =  find(".yt-lockup-title > a[title='#{user}']")
-   expect(elem_1).not_to eq(elem_2)
+Then /^Todos los resultados deben ser videos$/ do
+    check_if_exist(".yt-lockup-video")
 end
 
-When /^Hago la búsqueda$/ do
-    within("#masthead-search") do
-      fill_in 'search_query', with: user
-    end
-    click_button 'search-btn'
+Then /^Todos los resultados deben ser listas de reproduccion$/ do
+    check_if_exist(".yt-lockup-playlist")
 end
 
-When /^Voy a video dado$/ do
-    visit url
-end
-
-Given /^Url de un video \"([^\"]*)\"$/ do |entrada|
-   url = entrada;
-end
-
-Then /^Tiene que durar \"([^\"]*)\"$/ do |duracion|
-    duracion_encontrada = find('span.ytp-time-duration').text
-    if duracion_encontrada != duracion then
-      # Posible anuncio
-      minutos = Integer(duracion_encontrada.split(':')[0])
-      segundos = Integer(duracion_encontrada.split(':')[1])
-      # Esperar al anuncio
-      sleep minutos * 60 + segundos + 2
-      duracion_encontrada = find('span.ytp-time-duration').text
-    end
-    expect(duracion_encontrada).to eq(duracion)
-end
-
-Given /^El usuario \"([^\"]*)\"$/ do |usuario|
-     user = usuario;
-end
-
-Given /^El canal (.+)$/ do |canal|
-    current_canal = canal
-end
-
-When /^Pincho el canal en el menu$/ do
-    find('#appbar-guide-button').click unless ! find('#guide-container').nil?
+Then /^Todos los resultados deben tener una duración mínima de 20 minutos$/ do
     sleep 2
-    find('#guide-container').find('a[title="' + current_canal + '"]').click
+    canales = all("ol.item-section > li")
+    canales.each{ |elem|
+        expect(get_seconds(elem)).to be >= 1200
+    }
 end
 
-When /^Pincho cualquier video$/ do
+Then /^Todos los resultados deben tener una duración máxima de 4 min$/ do
     sleep 2
-    first("h3.yt-lockup-title > a").click()
+    canales = all("ol.item-section > li")
+    canales.each{ |elem|
+        expect(get_seconds(elem)).to be <= 240
+    }
 end
 
-Then /^Debe contener el canal como categoría$/ do
-    find('div#action-panel-details > button').click()
-    expect(find('div#watch-description-extras > ul > li', text: 'Categoría').text).to have_content(current_canal)
+And /^Hago la búsqueda$/ do
+  within("#masthead-search") do
+    fill_in 'search_query', with: user
+  end
+  click_button 'search-btn'
 end
 
-Then /^El primer comentario debe tener más likes que el segundo$/ do
-    execute_script "window.scrollBy(0,10000)"
-    sleep 10
-    first_elem = first(".off").text
-    all(".off").each do |el|
-        expect(Integer(first_elem)).to be >= Integer(el.text)
-    end
+And /^Selecciono el filtro \"([^\"]*)\"/ do |filtro|
+    sleep 2
+    find("span", :text => "Filtros").click
+    find("span", :class => "filter-text", :text => filtro, :wait => 1).click
+end
+
+def check_if_exist(_class)
+  sleep 2
+  canales = all("ol.item-section > li")
+  canales.each{ |c|
+      expect(c.find(_class)).not_to be(nil)
+  }
+end
+
+def get_seconds(elem)
+  times = elem.find(".video-time").text.split(':')
+  segundos = 0
+  if times.length == 2 then
+    # minutos : segundos
+    minutos = times[0].to_i
+    segundos = times[1].to_i + (minutos * 60)
+  else
+    # horas: minutos : segundos
+    horas = times[0].to_i
+    minutos = times[1].to_i + (horas * 60)
+    segundos = times[2].to_i + (minutos * 60)
+  end
+  return segundos
 end

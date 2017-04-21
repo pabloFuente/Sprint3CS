@@ -1,46 +1,45 @@
 Feature:
 
-Probar youtube
+Comprobar la búsqueda por filtros
 
 Como
 	Usuario No registrado
 
 Quiero
-	Poder hacer pruebas sobre los demás usuarios
+	Poder realizar búsquedas por filtros
 
 
-Scenario: Si buscamos el nombre de un usuario famoso, el primer video tiene que ser suyo.
+Scenario: Si buscamos el nombre de un usuario y filtramos por canal, todos los elementos deben ser canales
 	Given El usuario "AuronPlay"
     When Voy a Youtube
     And Hago la búsqueda
-	Then El primer video tiene como autor el usuario dado
+    And Selecciono el filtro "Canal"
+	Then Todos los resultados deben ser canales
 
-Scenario: Si buscamos el nombre de un usuario (no famoso), el primer no tiene que ser suyo.
-	Given El usuario "Solberto"
+Scenario: Si buscamos el nombre de un usuario y filtramos por video, todos los elementos deben ser videos
+	Given El usuario "AuronPlay"
     When Voy a Youtube
     And Hago la búsqueda
-    Then El primer video no tiene como autor el usuario dado
+    And Selecciono el filtro "Vídeo"
+	Then Todos los resultados deben ser videos
 
-Scenario: Si buscamos un video, tiene que tener una duración dada.
-	Given Url de un video "https://www.youtube.com/watch?v=JGwWNGJdvx8"
-    When Voy a video dado
-    Then Tiene que durar "4:23"
-
-Scenario: Si buscamos un video cualquiera, si sus comentarios están ordenados de mejor a peor, el primero debe tener más likes que el segundo
-    Given Url de un video "https://www.youtube.com/watch?v=tvTRZJ-4EyI"
-    When Voy a video dado
-    Then El primer comentario debe tener más likes que el segundo
-
-Scenario Outline: Si vamos a un canal y pinchamos cualquiera de sus videos, su categoria debe ser la del canal
-    Given El canal <canal>
+Scenario: Si buscamos el nombre de un usuario y filtramos por lista de reproducción, todos los elementos deben ser listas de reproducción
+	Given El usuario "AuronPlay"
     When Voy a Youtube
-    And Pincho el canal en el menu
-    And Pincho cualquier video
-    Then Debe contener el canal como categoría
+    And Hago la búsqueda
+    And Selecciono el filtro "Lista de reproducción"
+	Then Todos los resultados deben ser listas de reproduccion
 
-    Examples:
+Scenario: Si buscamos el nombre de un usuario y filtramos por duración mayor de 20 min, todos los elementos deben tener almenos esa duración
+	Given El usuario "AuronPlay"
+    When Voy a Youtube
+    And Hago la búsqueda
+    And Selecciono el filtro "Larga (más de 20 minutos)"
+	Then Todos los resultados deben tener una duración mínima de 20 minutos
 
-    | canal        |
-    | Música       |
-    | Deportes     |
-    | Noticias     |
+Scenario: Si buscamos el nombre de un usuario y filtramos por duración menor de 4 min, todos los elementos deben tener como máximo esa duración
+	Given El usuario "AuronPlay"
+    When Voy a Youtube
+    And Hago la búsqueda
+    And Selecciono el filtro "Corta (menos de 4 minutos)"
+	Then Todos los resultados deben tener una duración máxima de 4 min
